@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 15px;
+            color: #333;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+        }
+
+        .info-line:last-child {
+            border-bottom: none;
+        }
+
+        .info-line .label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        .info-line .value {
+            color: #333;
+            text-align: right;
+            flex: 1;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 12px;
+            padding-left: 5px;
+            border-left: 3px solid #4a90e2;
+        }
+
+        .file-block {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metric-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 8px;
+            font-size: 11px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .metric-line:last-child {
+            border-bottom: none;
+        }
+
+        .metric-line .label {
+            color: #666;
+            min-width: 100px;
+        }
+
+        .metric-line .value {
+            color: #333;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .file-list {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .file-item {
+            padding: 5px 8px;
+            font-size: 11px;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .error-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 11px;
+            color: #856404;
+        }
+
+        .database-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .database-box .label {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        .database-box .item {
+            padding: 3px 0;
+            color: #555;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .summary-box {
+            background: #f0f7ff;
+            border: 1px solid #4a90e2;
+            border-radius: 5px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .summary-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Code Analysis Results</h1>
+            <p class="subtitle">Project Statistics</p>
+        </div>
+
+        {% if error_message %}
+            <div class="error-box">
+                <strong>⚠️ Error:</strong> {{ error_message }}
+            </div>
+        {% endif %}
+
+        {% set project_list = [] %}
+        {% if saved and saved.projects %}
+            {% set project_list = saved.projects %}
+        {% elif projects %}
+            {% set project_list = projects %}
+        {% elif data %}
+            {# Handle direct data structure - create a project object from raw data #}
+            {% set temp_project = {
+                'project_name': data.project_name|default('Unknown'),
+                'user_name': data.username|default('Unknown'),
+                'project_id': data.project_id|default(''),
+                'user_id': data.user_id|default(''),
+                'main_files': [],
+                'sub_files': [],
+                'all_files': data.files_list.file_list|default([]),
+                'upload_errors': data.upload_errors|default([])
+            } %}
+            {# Process main files #}
+            {% if data.results_main %}
+                {% for file_name in data.results_main.main_file|default([]) %}
+                    {% set idx = loop.index %}
+                    {% set stat_key = 'main_file' ~ idx %}
+                    {% set stats = data.results_main.stats[stat_key]|default({}) %}
+                    {% set _ = temp_project.main_files.append({
+                        'file_name': file_name,
+                        'functions': stats.functions|default(0),
+                        'variables': stats.variables|default(0),
+                        'classes': stats.classes|default(0),
+                        'imports': stats.imports|default(0),
+                        'lines': stats.lines|default(0),
+                        'complexity': stats.complexity|default(0),
+                        'loops': stats.FOR|default(0),
+                        'database_calls': stats.database|default([]),
+                        'database_name': stats.database_name|default([]),
+                        'time_complexity': stats.time_complexity|default('N/A'),
+                        'file_bytes': stats.file_bytes|default('N/A')
+                    }) %}
+                {% endfor %}
+            {% endif %}
+            {# Process sub files #}
+            {% if data.results_sub %}
+                {% for file_name in data.results_sub.sub_files|default([]) %}
+                    {% set idx = loop.index %}
+                    {% set stat_key = 'subfile' ~ idx %}
+                    {% set stats = data.results_sub.stats[stat_key]|default({}) %}
+                    {% set _ = temp_project.sub_files.append({
+                        'file_name': file_name,
+                        'functions': stats.functions|default(0),
+                        'variables': stats.variables|default(0),
+                        'classes': stats.classes|default(0),
+                        'imports': stats.imports|default(0),
+                        'lines': stats.lines|default(0),
+                        'complexity': stats.complexity|default(0),
+                        'loops': stats.FOR|default(0),
+                        'database_calls': stats.database|default([]),
+                        'database_name': stats.database_name|default([]),
+                        'time_complexity': stats.time_complexity|default('N/A'),
+                        'file_bytes': stats.file_bytes|default('N/A')
+                    }) %}
+                {% endfor %}
+            {% endif %}
+            {% set _ = project_list.append(temp_project) %}
+        {% endif %}
+
+        {% if project_list %}
+            {% for project in project_list %}
+            
+            <!-- Project Info -->
+            <div class="summary-box">
+                <div class="summary-title">Project Information</div>
+                <div class="info-line">
+                    <span class="label">Project Name:</span>
+                    <span class="value">{{ project.project_name }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="label">User:</span>
+                    <span class="value">{{ project.user_name }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="label">Project ID:</span>
+                    <span class="value">{{ project.project_id }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="label">Total Files:</span>
+                    <span class="value">{{ project.all_files|length }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="label">Main Files:</span>
+                    <span class="value">{{ project.main_files|length }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="label">Sub Files:</span>
+                    <span class="value">{{ project.sub_files|length }}</span>
+                </div>
+            </div>
+
+            <!-- Main Files Section -->
+            {% if project.main_files %}
+            <div> 
+                <a id="404" href="/home"  
+                style="display: inline-block;
+                margin-top: 20px; 
+                padding: 12px 20px;
+                background-color: #3b82f6;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                ">🧪 Back Upload !
+                </a>
+</div>
+
+            <div class="section">
+                <div class="section-title">📄 Main Files</div>
+                
+                {% for file in project.main_files %}
+                <div class="file-block">
+                    <div class="file-name">{{ file.file_name }}</div>
+                    
+                    <div class="metric-line">
+                        <span class="label">Functions:</span>
+                        <span class="value">{{ file.functions }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Variables:</span>
+                        <span class="value">{{ file.variables }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Classes:</span>
+                        <span class="value">{{ file.classes }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Imports:</span>
+                        <span class="value">{{ file.imports }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Lines of Code:</span>
+                        <span class="value">{{ file.lines }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Loops (FOR):</span>
+                        <span class="value">{{ file.loops }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Complexity:</span>
+                        <span class="value">{{ "%.6f"|format(file.complexity) }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Time Complexity:</span>
+                        <span class="value">{{ file.time_complexity }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">File Size:</span>
+                        <span class="value">{{ file.file_bytes }}</span>
+                    </div>
+
+                    {% if file.database_calls %}
+                    <div class="database-box">
+                        <div class="label">🗄️ Database Connections:</div>
+                        {% for db_call in file.database_calls %}
+                        <div class="item">• {{ db_call }}</div>
+                        {% endfor %}
+                        {% if file.database_name %}
+                        <div class="label" style="margin-top: 8px;">Database Names:</div>
+                        {% for db_name in file.database_name %}
+                        <div class="item">• {{ db_name }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Sub Files Section -->
+            {% if project.sub_files %}
+            <div class="section">
+                <div class="section-title">📑 Sub Files</div>
+                
+                {% for file in project.sub_files %}
+                <div class="file-block">
+                    <div class="file-name">{{ file.file_name }}</div>
+                    
+                    <div class="metric-line">
+                        <span class="label">Functions:</span>
+                        <span class="value">{{ file.functions }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Variables:</span>
+                        <span class="value">{{ file.variables }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Classes:</span>
+                        <span class="value">{{ file.classes }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Imports:</span>
+                        <span class="value">{{ file.imports }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Lines of Code:</span>
+                        <span class="value">{{ file.lines }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Loops (FOR):</span>
+                        <span class="value">{{ file.loops }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Complexity:</span>
+                        <span class="value">{{ "%.6f"|format(file.complexity) }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">Time Complexity:</span>
+                        <span class="value">{{ file.time_complexity }}</span>
+                    </div>
+                    <div class="metric-line">
+                        <span class="label">File Size:</span>
+                        <span class="value">{{ file.file_bytes }}</span>
+                    </div>
+
+                    {% if file.database_calls %}
+                    <div class="database-box">
+                        <div class="label">🗄️ Database Connections:</div>
+                        {% for db_call in file.database_calls %}
+                        <div class="item">• {{ db_call }}</div>
+                        {% endfor %}
+                        {% if file.database_name %}
+                        <div class="label" style="margin-top: 8px;">Database Names:</div>
+                        {% for db_name in file.database_name %}
+                        <div class="item">• {{ db_name }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- All Files List -->
+            {% if project.all_files %}
+            <div class="section">
+                <div class="section-title">📂 All Files ({{ project.all_files|length }})</div>
+                <div class="file-list">
+                    {% for file in project.all_files %}
+                    <div class="file-item">• {{ file }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Upload Errors -->
+            {% if project.upload_errors %}
+            <div class="section">
+                <div class="error-box">
+                    <strong>⚠️ Upload Errors:</strong>
+                    {% for error in project.upload_errors %}
+                    <div class="item" style="margin-top: 5px;">• {{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+        {% else %}
+            <div class="no-data">
+                {{ table_html|safe if table_html else "No data available" }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

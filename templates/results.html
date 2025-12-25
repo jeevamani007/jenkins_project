@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - {{ project_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            color: #1d1d1f;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .header .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #0071e3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0077ed;
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #f5f5f7;
+            color: #1d1d1f;
+            border: 1px solid #d2d2d7;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8e8ed;
+        }
+
+        
+        .project-info {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .project-info h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .file-tag {
+            background: #e6f2ff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: #2c5282;
+            font-size: 14px;
+            border: 1px solid #bee3f8;
+        }
+
+        .section {
+            background: white;
+            padding: 24px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .section h2 {
+            color: #1d1d1f;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #d2d2d7;
+            padding-bottom: 12px;
+        }
+
+        .file-analysis {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-analysis h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stat-value.small {
+            font-size: 16px;
+        }
+
+        /* OpenAI Analysis Styles - Professional & Attractive */
+        .ai-analysis-section {
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 18px;
+            margin-top: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .ai-analysis-section h3 {
+            color: #1d1d1f;
+            margin-bottom: 0;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f5f5f7;
+        }
+        
+        .ai-analysis-section h3.ai-toggle {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease;
+        }
+        
+        .ai-analysis-section h3.ai-toggle:hover {
+            color: #0071e3;
+        }
+
+        .function-analysis-card {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+            transition: all 0.15s ease;
+        }
+
+        .function-analysis-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #d2d2d7;
+        }
+
+        .function-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0071e3;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-analysis-item {
+            margin-bottom: 18px;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 10px;
+            border-left: 3px solid #0071e3;
+        }
+
+        .ai-analysis-item .label {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-analysis-item .value {
+            color: #4a5568;
+            line-height: 1.7;
+            font-size: 14px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        
+        .ai-analysis-item.workflow-item {
+            background: #f0f9ff;
+            border-left-color: #0ea5e9;
+        }
+        
+        .ai-analysis-item.workflow-item .value {
+            white-space: pre-wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #1e40af;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .complexity-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .complexity-low {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .complexity-medium {
+            background: #fef5e7;
+            color: #b7791f;
+        }
+
+        .complexity-high {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .issues-list, .suggestions-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 8px;
+        }
+
+        .issues-list li {
+            background: #fef2f2;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            border-left: 3px solid #ef4444;
+            color: #991b1b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .suggestions-list li {
+            background: #f0fdf4;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            border-left: 3px solid #10b981;
+            color: #065f46;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .dependencies-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 8px;
+        }
+        
+        .dependencies-list li {
+            background: #f0f9ff;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+            color: #1e40af;
+            font-size: 13px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .function-details {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .function-details .detail-item {
+            display: flex;
+            gap: 10px;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .function-details .detail-label {
+            font-weight: 600;
+            color: #718096;
+            min-width: 100px;
+        }
+
+        .no-ai-analysis {
+            text-align: center;
+            padding: 24px;
+            color: #86868b;
+            font-size: 14px;
+            background: #f5f5f7;
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+        
+        /* Collapsible AI sections for better UX */
+        .ai-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .ai-content {
+            margin-top: 16px;
+        }
+        
+        .ai-content.collapsed {
+            display: none;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.15s ease;
+            display: inline-block;
+            margin-left: auto;
+            font-size: 12px;
+        }
+        
+        .toggle-icon.expanded {
+            transform: rotate(0deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>📊 Code Analysis Results</h1>
+                <p style="color: #718096; margin-top: 5px;">Project: <strong>{{ project_name }}</strong></p>
+            </div>
+            <div class="user-info">
+                <span style="color: #4a5568;">👤 {{ username }}</span>
+                <a href="/home" 
+                style="color: green; 
+                text-decoration: none; 
+                font-weight: bold;">!Back</a>
+
+                {% if user_id %}
+                <a href="/final/{{ user_id }}" class="btn btn-primary" style="margin-right: 10px;">📊 View Saved Projects</a>
+                {% endif %}
+                <a href="/logout" class="btn btn-secondary">Logout</a>
+            </div>
+        </div>
+
+        <!-- Upload Errors -->
+        {% if upload_errors %}
+        <div class="alert alert-error">
+            <strong>⚠️ Upload Issues:</strong>
+            <ul>
+                {% for error in upload_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Uploaded Files List -->
+        <div class="project-info">
+            <h2>📁 Uploaded Files ({{ files_list.file_list|length }})</h2>
+            <div class="file-list">
+                {% for file in files_list.file_list %}
+                <span class="file-tag">{{ file }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Main Files Analysis -->
+        {% if results_main.total_files > 0 %}
+        <div class="section">
+            <h2>🎯 Main Files Analysis ({{ results_main.total_files }})</h2>
+            
+            {% for i in range(1, results_main.total_files + 1) %}
+            {% set file_key = 'main_file' ~ i %}
+            {% set stats = results_main.stats[file_key] %}
+            {% set errors = results_main.errors[file_key] %}
+            
+            <div class="file-analysis">
+                <h3>📄 {{ results_main.main_file[i-1] }}</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Lines of Code</div>
+                        <div class="stat-value">{{ stats.lines }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Functions</div>
+                        <div class="stat-value">{{ stats.functions }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Classes</div>
+                        <div class="stat-value">{{ stats.classes }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Variables</div>
+                        <div class="stat-value">{{ stats.variables }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Imports</div>
+                        <div class="stat-value">{{ stats.imports }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">For Loops</div>
+                        <div class="stat-value">{{ stats.FOR }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">File Size</div>
+                        <div class="stat-value small">{{ stats.file_bytes }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Analysis Time</div>
+                        <div class="stat-value small">{{ "%.3f"|format(stats.complexity) }}s</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" style="margin-top: 15px;">
+                    <div class="stat-label">Time Complexity</div>
+                    <span class="complexity-badge {% if stats.time_complexity in ['O(1)', 'O(n)'] %}complexity-low{% elif stats.time_complexity == 'O(n²)' %}complexity-medium{% else %}complexity-high{% endif %}">
+                        {{ stats.time_complexity }}
+                    </span>
+                </div>
+
+                {% if stats.database %}
+                <div class="database-info">
+                    <h4>🗄️ Database Connections Found:</h4>
+                    <p>{{ stats.database|join(', ') }}</p>
+                    {% if stats.database_name %}
+                    <p style="margin-top: 5px;"><strong>Database Name:</strong> {{ stats.database_name|join(', ') }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if errors %}
+                <div class="error-list">
+                    <h4>❌ Errors:</h4>
+                    <ul>
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Sub Files Analysis -->
+        {% if results_sub.total_files > 0 %}
+        <div class="section">
+            <h2>📦 Sub Files Analysis ({{ results_sub.total_files }})</h2>
+            
+            {% for i in range(1, results_sub.total_files + 1) %}
+            {% set file_key = 'subfile' ~ i %}
+            {% set stats = results_sub.stats[file_key] %}
+            {% set errors = results_sub.errors[file_key] %}
+            
+            <div class="file-analysis">
+                <h3>📄 {{ results_sub.sub_files[i-1] }}</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Lines of Code</div>
+                        <div class="stat-value">{{ stats.lines }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Functions</div>
+                        <div class="stat-value">{{ stats.functions }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Classes</div>
+                        <div class="stat-value">{{ stats.classes }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Variables</div>
+                        <div class="stat-value">{{ stats.variables }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Imports</div>
+                        <div class="stat-value">{{ stats.imports }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">For Loops</div>
+                        <div class="stat-value">{{ stats.FOR }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">File Size</div>
+                        <div class="stat-value small">{{ stats.file_bytes }}</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Analysis Time</div>
+                        <div class="stat-value small">{{ "%.3f"|format(stats.complexity) }}s</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" style="margin-top: 15px;">
+                    <div class="stat-label">Time Complexity</div>
+                    <span class="complexity-badge {% if stats.time_complexity in ['O(1)', 'O(n)'] %}complexity-low{% elif stats.time_complexity == 'O(n²)' %}complexity-medium{% else %}complexity-high{% endif %}">
+                        {{ stats.time_complexity }}
+                    </span>
+                </div>
+
+                {% if stats.database %}
+                <div class="database-info">
+                    <h4>🗄️ Database Connections Found:</h4>
+                    <p>{{ stats.database|join(', ') }}</p>
+                    {% if stats.database_name %}
+                    <p style="margin-top: 5px;"><strong>Database Name:</strong> {{ stats.database_name|join(', ') }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if errors %}
+                <div class="error-list">
+                    <h4>❌ Errors:</h4>
+                    <ul>
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- OpenAI AI Analysis Section for Sub Files -->
+                {% if stats.openai_analysis and stats.openai_analysis.function_analyses %}
+                <div class="ai-analysis-section">
+                    <h3 class="ai-toggle" onclick="toggleAISection(this)">
+                        <span>🤖 AI Function Analysis</span>
+                        <span class="toggle-icon" style="margin-left: auto; font-size: 12px;">▶</span>
+                    </h3>
+                    <div class="ai-content collapsed">
+                    
+                    {% for func_analysis in stats.openai_analysis.function_analyses %}
+                    <div class="function-analysis-card">
+                        <div class="function-name">
+                            🔷 Function: {{ func_analysis.function_name }}
+                        </div>
+
+                        {% if func_analysis.workflow %}
+                        <div class="ai-analysis-item workflow-item">
+                            <div class="label">🔄 Workflow:</div>
+                            <div class="value">{{ func_analysis.workflow }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.purpose %}
+                        <div class="ai-analysis-item">
+                            <div class="label">📝 Purpose:</div>
+                            <div class="value">{{ func_analysis.purpose }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.inputs %}
+                        <div class="ai-analysis-item">
+                            <div class="label">📥 Inputs:</div>
+                            <div class="value">{{ func_analysis.inputs }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.outputs %}
+                        <div class="ai-analysis-item">
+                            <div class="label">📤 Outputs:</div>
+                            <div class="value">{{ func_analysis.outputs }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.complexity %}
+                        <div class="ai-analysis-item">
+                            <div class="label">⚡ Complexity:</div>
+                            <div class="value">
+                                <span class="complexity-badge {% if func_analysis.complexity == 'Low' %}complexity-low{% elif func_analysis.complexity == 'Medium' %}complexity-medium{% else %}complexity-high{% endif %}">
+                                    {{ func_analysis.complexity }}
+                                </span>
+                                {% if func_analysis.complexity_reason %}
+                                <span style="margin-left: 10px; color: #718096; font-size: 13px;">{{ func_analysis.complexity_reason }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.dependencies and func_analysis.dependencies|length > 0 %}
+                        <div class="ai-analysis-item">
+                            <div class="label">🔗 Dependencies:</div>
+                            <ul class="dependencies-list">
+                                {% for dep in func_analysis.dependencies %}
+                                <li>{{ dep }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.summary %}
+                        <div class="ai-analysis-item">
+                            <div class="label">📋 Summary:</div>
+                            <div class="value">{{ func_analysis.summary }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.potential_issues and func_analysis.potential_issues|length > 0 %}
+                        <div class="ai-analysis-item">
+                            <div class="label">⚠️ Potential Issues:</div>
+                            <ul class="issues-list">
+                                {% for issue in func_analysis.potential_issues %}
+                                <li>{{ issue }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if func_analysis.suggestions and func_analysis.suggestions|length > 0 %}
+                        <div class="ai-analysis-item">
+                            <div class="label">💡 Suggestions:</div>
+                            <ul class="suggestions-list">
+                                {% for suggestion in func_analysis.suggestions %}
+                                <li>{{ suggestion }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% if stats.openai_analysis.total_functions > stats.openai_analysis.analyzed_functions %}
+                    <div style="text-align: center; color: #86868b; font-size: 13px; margin-top: 16px; padding: 12px; background: #f5f5f7; border-radius: 8px;">
+                        ℹ️ Analyzed {{ stats.openai_analysis.analyzed_functions }} of {{ stats.openai_analysis.total_functions }} functions
+                    </div>
+                    {% endif %}
+                    </div>
+                </div>
+                {% elif stats.function_details and stats.function_details|length > 0 %}
+                <div class="ai-analysis-section">
+                    <h3>📋 Detected Functions</h3>
+                    {% for func in stats.function_details %}
+                    <div class="function-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Function:</span>
+                            <span><strong>{{ func.name }}</strong></span>
+                        </div>
+                        {% if func.args %}
+                        <div class="detail-item">
+                            <span class="detail-label">Arguments:</span>
+                            <span>{{ func.args|join(', ') }}</span>
+                        </div>
+                        {% endif %}
+                        {% if func.docstring %}
+                        <div class="detail-item">
+                            <span class="detail-label">Docstring:</span>
+                            <span>{{ func.docstring[:100] }}{% if func.docstring|length > 100 %}...{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <span class="detail-label">Lines:</span>
+                            <span>{{ func.line_start }}{% if func.line_end %} - {{ func.line_end }}{% endif %}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="no-ai-analysis">
+                        AI analysis not available. Set OPENAI_API_KEY to enable AI function analysis.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- No Data Message -->
+        {% if results_main.total_files == 0 and results_sub.total_files == 0 %}
+        <div class="section">
+            <div class="no-data">
+                <p>📭 No files were successfully analyzed.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        // Fast button interactions
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+        
+        // Smooth scroll for long pages
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Toggle AI sections
+        function toggleAISection(element) {
+            const content = element.nextElementSibling;
+            const icon = element.querySelector('.toggle-icon');
+            
+            if (!content || !icon) return;
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.add('expanded');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.remove('expanded');
+                icon.textContent = '▶';
+            }
+        }
+        
+        // Auto-expand first AI section on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstAISection = document.querySelector('.ai-toggle');
+            if (firstAISection) {
+                toggleAISection(firstAISection);
+            }
+        });
+        
+        // Smooth animations for AI cards
+        if ('IntersectionObserver' in window) {
+            const cardObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '0';
+                        entry.target.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            entry.target.style.transition = 'all 0.3s ease';
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, 10);
+                        cardObserver.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            document.querySelectorAll('.function-analysis-card').forEach(card => {
+                cardObserver.observe(card);
+            });
+        }
+        
+        // Lazy load images if any
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            });
+            document.querySelectorAll('img[data-src]').forEach(img => imageObserver.observe(img));
+        }
+    </script>
+</body>
+</html>

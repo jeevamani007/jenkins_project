@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div>
+                <h1><i class="fas fa-vial"></i> Test Dashboard</h1>
+                <p style="color: #666; margin-top: 5px;">Selenium Test Management System</p>
+            </div>
+            <div class="status">
+                <div class="dot"></div>
+                <span>System Online</span>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalTests">0</h3>
+                    <p>Total Tests</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="passedTests">0</h3>
+                    <p>Passed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="failedTests">0</h3>
+                    <p>Failed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="errorTests">0</h3>
+                    <p>Errors</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button id="runAllBtn" class="btn btn-primary">
+                <i class="fas fa-play"></i> Run All Tests
+            </button>
+            <button id="refreshBtn" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i> Refresh Tests
+            </button>
+            <button id="viewResultsBtn" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-chart-bar"></i> View Results
+            </button>
+            <button id="clearBtn" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Clear Results
+            </button>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="statusBar" class="status-bar" style="display: none;">
+            <div class="spinner"></div>
+            <span id="statusText">Running tests...</span>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div id="tabs" class="tabs">
+            <!-- Tabs will be dynamically generated -->
+        </div>
+
+        <!-- Test Cards Grid -->
+        <div id="testsGrid" class="tests-grid">
+            <div class="loading">
+                <div class="spinner-large"></div>
+                <p>Loading tests...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results" style="display: none;">
+            <div class="results-header">
+                <h2><i class="fas fa-clipboard-list"></i> Test Results</h2>
+                <div class="results-actions">
+                    <button class="btn-filter active" data-filter="all">All</button>
+                    <button class="btn-filter" data-filter="pass">Passed</button>
+                    <button class="btn-filter" data-filter="fail">Failed</button>
+                    <button class="btn-filter" data-filter="error">Errors</button>
+                    <button id="closeResults" class="btn-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="resultsSummary" class="results-summary">
+                <!-- Summary will be dynamically generated -->
+            </div>
+            
+            <div id="resultsContent" class="results-content">
+                <!-- Results will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
+
