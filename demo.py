@@ -32,7 +32,7 @@ async def startup_event():
 
 UPLOAD_FOLDER = "uploads"
 MAX_FILE_SIZE = 10 * 1024 * 1024
-ALLOWED_EXTENSIONS = {".py"}
+ALLOWED_EXTENSIONS = {".py", ".java"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_db():
@@ -49,8 +49,9 @@ def validate_file(filename: str) -> Tuple[bool, str]:
     if ".." in name or name.startswith("."):
         return False, "Invalid filename"
     if Path(name).suffix.lower() not in ALLOWED_EXTENSIONS:
-        return False, "Only .py files"
+        return False, "Only .py and .java files"
     return True, name
+
 
 def extract_functions_from_code(code: str, file_path: str) -> List[Dict]:
     """
@@ -88,6 +89,84 @@ def extract_functions_from_code(code: str, file_path: str) -> List[Dict]:
     
     return functions
 
+def analyze_java_code(code: str):
+    """
+    Analyze Java code using Regex patterns (since AST is Python specific)
+    """
+    stats = {
+        "functions": 0, 
+        "variables": 0, 
+        "classes": 0, 
+        "imports": 0, 
+        "lines": 0, 
+        "complexity": 0, 
+        "FOR": 0, 
+        "database": [], 
+        'database_name': [], 
+        'time_complexity': 'O(1)',
+        'file_bytes': '',
+        'function_details': []
+    }
+    
+    try:
+        # Basic stats
+        stats["lines"] = len(code.splitlines())
+        
+        # Classes: class ClassName
+        stats["classes"] = len(re.findall(r'\bclass\s+\w+', code))
+        
+        # Methods: simplified regex for method detection
+        # public/private/protected void/Type name(args) {
+        method_pattern = r'(public|protected|private|static|\s) +[\w\<\>\[\]]+\s+(\w+) *\([^\)]*\) *(\{?|[^;])'
+        matches = re.findall(method_pattern, code)
+        stats["functions"] = len(matches)
+        
+        # Capture function details (approximate)
+        for match in matches:
+            stats['function_details'].append({
+                "name": match[1],
+                "args": [],  
+                "docstring": "",
+                "line_start": 0, 
+                "line_end": 0
+            })
+            
+        # Variables (approximate)
+        stats["variables"] = len(re.findall(r'\b(int|String|boolean|double|float|long|char|List|Map|Set)\s+\w+', code))
+        
+        # Imports
+        stats["imports"] = len(re.findall(r'import\s+[\w\.]+', code))
+        
+        # Loops
+        stats["FOR"] = len(re.findall(r'\bfor\s*\(', code)) + len(re.findall(r'\bwhile\s*\(', code))
+        
+        # DB Connections
+        if "DriverManager.getConnection" in code or "DataSource" in code:
+            stats["database"].append("JDBC")
+            
+        if "EntityManager" in code or "@Entity" in code:
+             stats["database"].append("JPA/Hibernate")
+
+        # DB Name (simple heuristic)
+        db_match = re.search(r'jdbc:[\w]+://[^/]+/(\w+)', code)
+        if db_match:
+            stats['database_name'].append(db_match.group(1))
+
+        # Complexity Estimation
+        if re.search(r'for\s*\(.*for\s*\(.*for\s*\(', code, re.DOTALL):
+            stats['time_complexity'] = "O(n³)"
+        elif re.search(r'for\s*\(.*for\s*\(', code, re.DOTALL):
+            stats['time_complexity'] = "O(n²)"
+        elif stats["FOR"] > 0:
+            stats['time_complexity'] = "O(n)"
+        else:
+             stats['time_complexity'] = "O(1)"
+             
+    except Exception as e:
+        print(f"Error analyzing Java code: {e}")
+        
+    return stats
+
 async def analyze_code(file_path: str):
     def parse(path: str):
         start = datetime.datetime.now() 
@@ -108,19 +187,28 @@ async def analyze_code(file_path: str):
         errors = []
         
         try:
+            is_python = path.endswith('.py')
+            
             with open(path, "r", encoding="utf-8") as f:
                 code = f.read()
-                stats["lines"] = len(code.splitlines())
             
+            # Common file size calc
             file_size = os.path.getsize(path)
             if file_size <= 1024:
-                ranges = f'KB: {file_size} bytes'
+                ranges = f'{file_size} B'
             elif file_size > 1024 and file_size <= (1024 * 1024):
-                ranges = f'MB: {file_size / 1024:.2f} KB'
-            elif file_size > (1024 * 1024) and file_size <= (1024 * 1024 * 1024):
-                ranges = f'GB: {file_size / (1024 * 1024):.2f} MB'
+                ranges = f'{file_size / 1024:.2f} KB'
             else:
-                ranges = f'{file_size / (1024 * 1024 * 1024):.2f} GB'
+                ranges = f'{file_size / (1024 * 1024):.2f} MB'
+            
+            if not is_python:
+                # Java Or other logic
+                stats = analyze_java_code(code)
+                stats['file_bytes'] = ranges
+                stats["complexity"] = (datetime.datetime.now() - start).total_seconds()
+                return stats, errors
+
+            stats["lines"] = len(code.splitlines())
             
             stats['file_bytes'] = ranges
             
@@ -240,6 +328,18 @@ async def analyze_code(file_path: str):
 def find_main_file(paths: List[str]) -> Tuple[List[str], List[str]]:
     main_files, other_files = [], []
     for path in paths:
+        if path.endswith('.java'):
+            try:
+                with open(path, "r") as f:
+                    code = f.read()
+                if "public static void main" in code:
+                    main_files.append(path)
+                else:
+                    other_files.append(path)
+            except:
+                other_files.append(path)
+            continue
+
         try:
             with open(path, "r") as f:
                 code = f.read()
