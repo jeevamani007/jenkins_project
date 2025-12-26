@@ -1,39 +1,52 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-
-    stage('Clone Code') {
-      steps {
-        git 'https://github.com/jeevamani007/jenkins_project.git'
-      }
+    environment {
+        APP_NAME = "jenkins_project"
     }
 
-    stage('Logic Check') {
-      steps {
-        script {
-          if (env.BRANCH_NAME == 'main') {
-            echo 'Main branch detected'
-          } else {
-            echo 'Not main branch'
-          }
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                echo "Code already checked out from SCM"
+            }
         }
-      }
+
+        stage('Logic Check') {
+            steps {
+                script {
+                    echo "Running logic checks..."
+                    // simple condition example
+                    def status = "OK"
+                    if (status == "OK") {
+                        echo "Logic check passed"
+                    } else {
+                        error "Logic check failed"
+                    }
+                }
+            }
+        }
+
+        stage('Build Test') {
+            steps {
+                echo "Build/Test stage running"
+                // future use:
+                // sh 'python --version'
+                // sh 'pip install -r requirements.txt'
+            }
+        }
     }
 
-    stage('Build Test') {
-      steps {
-        echo 'Jenkins pipeline working'
-      }
+    post {
+        success {
+            echo "✅ Pipeline executed successfully"
+        }
+        failure {
+            echo "❌ Pipeline failed"
+        }
+        always {
+            echo "Pipeline finished"
+        }
     }
-  }
-
-  post {
-    success {
-      echo 'Pipeline executed successfully'
-    }
-    failure {
-      echo 'Pipeline failed'
-    }
-  }
 }
